@@ -52,6 +52,30 @@ gives the following mesh:
 
 <img src="rsc/refineLdelta_ex.png" width="350" height="350">
 
+```python
+python3 BZ.py -t 2 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_delta 0.1 0.125 0.1 --refine_L 0.1 0.125 0.3
+```
+
+<img src="rsc/2_refineLdelta_ex.png" width="350" height="350">
+
+
+
+```python
+python3 BZ.py -t 8 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_L 0.1 0.125 0.3
+```
+
+<img src="rsc/8_refineLdelta_ex.png" width="350" height="350">
+
+
+```python
+python3 BZ.py -t 48 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_delta 0.1 0.125 0.1 --refine_L 0.1 0.125 0.3
+```
+
+<img src="rsc/48_refineLdelta_ex.png" width="350" height="350">
+
+
+
+
 ## What's next ?
 
 You can now use [this repo](https://github.com/RemiHelleboid/EmpiricalPseudopotential) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
