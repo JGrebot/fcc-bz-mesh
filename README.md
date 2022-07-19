@@ -56,6 +56,3 @@ gives the following mesh:
 
 You can now use [this repo](https://github.com/RemiHelleboid/EmpiricalPseudopotential) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
 
-
-## A parser
-Just a python parser example in order to export vertices and tetrahedra informations from the .mesh created.
