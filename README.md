@@ -24,8 +24,9 @@ Typing
 ```python
 python3 BZ-pyplot-allBZ-point.py
 ```
-produces
-![what](rsc/convexhull.png)
+gives
+
+<img src="rsc/convexhull.png" width="350" height="350">
 
 
 ## Creating meshes of the BZ
@@ -47,13 +48,13 @@ For instance,
 ```python
 python3 BZ.py -t 1 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_delta 0.1 0.125 0.1 --refine_L 0.1 0.125 0.3
 ```
-produce the following mesh:
-![what](rsc/refineLdelta_ex.png)
+gives the following mesh:
 
+<img src="rsc/refineLdelta_ex.png" width="350" height="350">
 
 ## What's next ?
 
-You can now use 
+You can now use [this repo](https://github.com/RemiHelleboid/EmpiricalPseudopotential) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
 
 
 ## A parser
