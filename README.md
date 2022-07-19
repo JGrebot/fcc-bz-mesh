@@ -3,7 +3,7 @@
 
 ## About
 
-This repo allows to build, with gmsh python API, a mesh of a face cubic centered (f.c.c.) Brillouin Zone (BZ): full, 1/2, 1/8 and 1/48 of the BZ. Refinement box in the delta and L valley can optionnaly be added.
+This repo allows to build, with [GMSH](https://gmsh.info/) python API, a mesh of a face cubic centered (f.c.c.) Brillouin Zone (BZ): full, 1/2, 1/8 and 1/48 of the BZ. Refinement box in the delta and L valley can optionnaly be added.
 
 
 ## Dependency
