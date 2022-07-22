@@ -79,5 +79,5 @@ python3 BZ.py -t 48 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_delta 0.
 
 ## What's next ?
 
-You can now use [this repo](https://github.com/RemiHelleboid/EmpiricalPseudopotential) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
+You can now use [this repo](https://github.com/RemiHelleboid/BzMeshBandsDos) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
 
