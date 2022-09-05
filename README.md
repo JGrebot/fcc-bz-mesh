@@ -18,11 +18,11 @@ gmsh=4.10.3=hc719622_0
 
 ## What is the BZ
 
-With the file __BZ-pyplot-allBZ-point.py__ you can visualize the convex hull of the full BZ we wish to mesh.
+With the file __plot_bz_outline.py__ you can visualize the convex hull of the full BZ we wish to mesh.
 
 Typing
 ```python
-python3 BZ-pyplot-allBZ-point.py
+python3 plot_bz_outline.py
 ```
 gives
 
