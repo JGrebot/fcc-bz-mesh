@@ -710,7 +710,7 @@ def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
     for you: 
     - lengthMin and lengthMax that define how finer the mesh is.
     - algo, ie the type of algorithm used for meshing (algo = 6 by default)
-    - ScalingFactor is the coefficient applied to all points corrdinates (4*pi/a by defaults).
+    - ScalingFactor is the coefficient applied to all points coordinates (4*pi/a by defaults).
 
     input: 
     lengthMin       (double): Minimum element mesh size.
@@ -812,6 +812,8 @@ def writeMeshFile(filename, view=False, generate=True, dim=3, extension=".msh"):
     extension   (str):  Type of meshfile written. See the docs of gmsh for all available format.
                         extension is always concatenated to filename.
     """
+    print("REMOVE DUPLICATES NODES ")
+    model.mesh.removeDuplicateNodes()
     if(generate):
         model.mesh.generate(dim)
     if(view):
