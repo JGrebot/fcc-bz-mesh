@@ -16,7 +16,7 @@ DESCRIPTION_SCRIPT = """
 This function builds a mesh of face cubic centered BZ. Though mesh_type you can
 select either 1, 1/2, 1/8 or 1/48 of the BZ. mesh_name controls the name of
 the written mesh. You can visualize the geometry and the mesh though -vm
-and -gm options. Then you can add refienements box with the --refine_L and
+and -gm options. Then you can add refinements box with the --refine_L and
 --refine_delta options.
 """
 
@@ -26,7 +26,7 @@ def main_BZ_generating_mesh():
     This function builds a mesh of the BZ of Si. Though mesh_type you can
     select either 1, 1/2, 1/8 or 1/48 of the BZ. mesh_name control the name of
     the written mesh. You can visualize the geometry and the mesh though -vm
-    and -gm options. Then you can add refienements box with the --refine_L and
+    and -gm options. Then you can add refinements box with the --refine_L and
     --refine_delta option.
 
     The easier way to launch this script and understand its arguments is to
@@ -58,7 +58,7 @@ def main_BZ_generating_mesh():
                         type=float,
                         default=3e-2,
                         required=True,
-                        help="""Minimal characteric length of mesh elements (
+                        help="""Minimal characteristic length of mesh elements (
                         [Ga, X] is of length 1/2).""")
     parser.add_argument("-lmax",
                         "--lengthMax",
@@ -66,7 +66,7 @@ def main_BZ_generating_mesh():
                         type=float,
                         default=10e-2,
                         required=True,
-                        help="""Maximal characteric length of mesh elements (
+                        help="""Maximal characteristic length of mesh elements (
                         [Ga, X] is of length 1/2).""")
     parser.add_argument("-vm",
                         dest="view_mesh",
@@ -90,7 +90,7 @@ def main_BZ_generating_mesh():
                         action='append',
                         nargs='+',
                         help="""Refinement parameters for delta valley. Three
-                        parameters are required: h_coarse, dL and dH. The
+                        parameters are required: h_fine, dL and dH. The
                         refinement box is centered in 0.875*[Ga, X]. dL is the
                         length along the [Ga, X] segment. dL must be between
                         0.0 and 0.125. dH is relative to the segment [X, W],
@@ -101,7 +101,7 @@ def main_BZ_generating_mesh():
                         action='append',
                         nargs='+',
                         help="""Refinement parameters for L valley. Three 
-                        parameters are required: h_coarse, dL and dH. The
+                        parameters are required: h_fine, dL and dH. The
                         refinement box is centered in 0.875*[Ga, L]. dL must be
                         between 0.0 and 0.125. dH is relative to the segment
                         [L, U] and must be inside ]0.0, 1.0].""")
@@ -117,13 +117,13 @@ def main_BZ_generating_mesh():
     mesh_extension = args.extension
 
     if args.refine_L is not None:
-        h_coarse_L = float(args.refine_L[0][0])
+        h_fine_L = float(args.refine_L[0][0])
         dL_L = float(args.refine_L[0][1])
         dH_L = float(args.refine_L[0][2])
 
     if args.refine_delta is not None:
         print(args.refine_delta)
-        h_coarse_delta = float(args.refine_delta[0][0])
+        h_fine_delta = float(args.refine_delta[0][0])
         dL_delta = float(args.refine_delta[0][1])
         dH_delta = float(args.refine_delta[0][2])
 
@@ -148,10 +148,10 @@ def main_BZ_generating_mesh():
     # lengthMax = 10e-2
 
     # Local refinement parameters
-    # h_coarse_L = 0.01*lengthMin
+    # h_fine_L = 0.01*lengthMin
     # dL_L = 0.125
     # dH_L = 0.10
-    # h_coarse_delta = 0.01*lengthMin
+    # h_fine_delta = 0.01*lengthMin
     # dL_delta = 0.125
     # dH_delta = 0.10
 
@@ -161,16 +161,16 @@ def main_BZ_generating_mesh():
     initialize_gmsh_model(lengthMin, lengthMax, scalingFactor)
     BZ_points = build_BZ_points()
     dimTag = build_1_over_48_of_the_BZ(BZ_points)
-    apply_symetry_and_rotation(BZ_points, mesh_type, dimTag)
+    apply_symmetry_and_rotation(BZ_points, mesh_type, dimTag)
 
     ##############################################
     # Applying refinements
     ##############################################
     if args.refine_delta is not None:
         refine_mesh_delta_valley(
-            dH_delta, dL_delta, mesh_type, BZ_points, h_coarse_delta)
+            dH_delta, dL_delta, mesh_type, BZ_points, h_fine_delta)
     if args.refine_L is not None:
-        refine_mesh_L_valley(dH_L, dL_L, mesh_type, BZ_points, h_coarse_L)
+        refine_mesh_L_valley(dH_L, dL_L, mesh_type, BZ_points, h_fine_L)
 
     ##############################################
     # Mesh Writing
@@ -213,9 +213,9 @@ def build_BZ_points():
     return BZ_points
 
 
-def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
+def apply_symmetry_and_rotation(BZ_points, mesh_type, dimTag):
     """
-    This function applies the rotation and symetries to 1/48 of the BZ.
+    This function applies the rotation and symmetries to 1/48 of the BZ.
     Three type of operations are used:
         0) If 1/48 is chosen, do nothing.
         1) From 1/48 to 1/8 of the BZ. A symmetry along Ga-L-K plane and
@@ -230,7 +230,7 @@ def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
     dimTag          tuple: (dimension, tag) of the 1/48 BZ volume previously created.
 
     output:
-    (None) Informations are stored in gmsh.model.
+    (None) Information is stored in gmsh.model.
     """
     if mesh_type == "48":
         return None
@@ -290,7 +290,7 @@ def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
     return None
 
 
-def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
+def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_fine):
     """
     This functions add refinement boxes in all the L valley. 
     It works for all mesh_type automatically.
@@ -310,7 +310,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     mesh_type   str: either 1, 2, or 8 or 48 for the three types of mesh you wish to generate.
     BZ_points   dict: All keys are Ga, L, U, X, W, K. 
                       And each key is np array of 3 coordinates (Kx, Ky, Kz).
-    h_coarse    double: Value of max tetrahedra size. Must be coherent with the parameter
+    h_fine    double: Value of max tetrahedra size. Must be coherent with the parameter
                         lengthMin and lengthMax.
 
     output:     None (stored in gmsh.model)
@@ -395,7 +395,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
         if mesh_type == "48":
             computeIntersectingVolumes()
-            setSize(Tag_refinement, h_coarse)
+            setSize(Tag_refinement, h_fine)
 
         if mesh_type == "8" or mesh_type == "2" or mesh_type == "1":
             Ga = BZ_points["Ga"]
@@ -422,7 +422,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
             if mesh_type == "8":
                 computeIntersectingVolumes()
-                setSize(dimTag_8[0][1], h_coarse)
+                setSize(dimTag_8[0][1], h_fine)
 
             if mesh_type == "2" or mesh_type == "1":
                 # dimTag_8 is the only tag we have
@@ -442,10 +442,10 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                 if mesh_type == "2":
                     computeIntersectingVolumes()
-                    setSize(dimTag_8[0][1],   h_coarse)
-                    setSize(dimTag_8_1[0][1], h_coarse)
-                    setSize(dimTag_8_2[0][1], h_coarse)
-                    setSize(dimTag_8_3[0][1], h_coarse)
+                    setSize(dimTag_8[0][1],   h_fine)
+                    setSize(dimTag_8_1[0][1], h_fine)
+                    setSize(dimTag_8_2[0][1], h_fine)
+                    setSize(dimTag_8_3[0][1], h_fine)
 
                 if mesh_type == "1":
                     # Mirror by the plane of equation z = 0
@@ -461,18 +461,18 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                     computeIntersectingVolumes()
 
-                    setSize(dimTag_2[0][1], h_coarse)
-                    setSize(dimTag_2_1[0][1], h_coarse)
-                    setSize(dimTag_2_2[0][1], h_coarse)
-                    setSize(dimTag_2_3[0][1], h_coarse)
+                    setSize(dimTag_2[0][1], h_fine)
+                    setSize(dimTag_2_1[0][1], h_fine)
+                    setSize(dimTag_2_2[0][1], h_fine)
+                    setSize(dimTag_2_3[0][1], h_fine)
 
-                    setSize(dimTag_8[0][1], h_coarse)
-                    setSize(dimTag_8_1[0][1], h_coarse)
-                    setSize(dimTag_8_2[0][1], h_coarse)
-                    setSize(dimTag_8_3[0][1], h_coarse)
+                    setSize(dimTag_8[0][1], h_fine)
+                    setSize(dimTag_8_1[0][1], h_fine)
+                    setSize(dimTag_8_2[0][1], h_fine)
+                    setSize(dimTag_8_3[0][1], h_fine)
 
 
-def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
+def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_fine):
     """
     This functions add refinement boxes in all the delta valley. 
     It works for all mesh_type automatically.
@@ -491,7 +491,7 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     mesh_type   str: either 1, 2, or 8 or 48 for the three types of mesh you wish to generate.
     BZ_points   dict: All keys are Ga, L, U, X, W, K. 
                       And each key is np array of 3 coordinates (Kx, Ky, Kz).
-    h_coarse    double: Value of max tetrahedra size. Must be coherent with the parameter
+    h_fine    double: Value of max tetrahedra size. Must be coherent with the parameter
                         lengthMin and lengthMax.
 
     output:     None (stored in gmsh.model)
@@ -575,7 +575,7 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
         if mesh_type == "48":
             computeIntersectingVolumes()
-            setSize(Tag_refinement, h_coarse)
+            setSize(Tag_refinement, h_fine)
 
         if mesh_type == "8" or mesh_type == "2" or mesh_type == "1":
 
@@ -612,9 +612,9 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
             if mesh_type == "8":
                 computeIntersectingVolumes()
-                setSize(dimTag_24_1[0][1], h_coarse)
-                setSize(dimTag_24_2[0][1], h_coarse)
-                setSize(dimTag_24_3[0][1], h_coarse)
+                setSize(dimTag_24_1[0][1], h_fine)
+                setSize(dimTag_24_2[0][1], h_fine)
+                setSize(dimTag_24_3[0][1], h_fine)
 
             if mesh_type == "2" or mesh_type == "1":
                 # dimTag_24_1 is near the x axis.
@@ -663,11 +663,11 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                 if mesh_type == "2":
                     computeIntersectingVolumes()
-                    setSize(dimTag_4_xmin[0][1], h_coarse)
-                    setSize(dimTag_4_xmax[0][1], h_coarse)
-                    setSize(dimTag_4_ymax[0][1], h_coarse)
-                    setSize(dimTag_4_ymin[0][1], h_coarse)
-                    setSize(dimTag_4_zmax[0][1], h_coarse)
+                    setSize(dimTag_4_xmin[0][1], h_fine)
+                    setSize(dimTag_4_xmax[0][1], h_fine)
+                    setSize(dimTag_4_ymax[0][1], h_fine)
+                    setSize(dimTag_4_ymin[0][1], h_fine)
+                    setSize(dimTag_4_zmax[0][1], h_fine)
 
                 if mesh_type == "1":
                     dimTag_4_zmin = factory.copy(dimTag_4_zmax)
@@ -695,13 +695,13 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                     computeIntersectingVolumes()
 
-                    setSize(dimTag_1_0[0][1], h_coarse)
-                    setSize(dimTag_1_1[0][1], h_coarse)
-                    setSize(dimTag_1_2[0][1], h_coarse)
-                    setSize(dimTag_1_3[0][1], h_coarse)
+                    setSize(dimTag_1_0[0][1], h_fine)
+                    setSize(dimTag_1_1[0][1], h_fine)
+                    setSize(dimTag_1_2[0][1], h_fine)
+                    setSize(dimTag_1_3[0][1], h_fine)
 
-                    setSize(dimTag_4_zmax[0][1], h_coarse)
-                    setSize(dimTag_4_zmin[0][1], h_coarse)
+                    setSize(dimTag_4_zmax[0][1], h_fine)
+                    setSize(dimTag_4_zmin[0][1], h_fine)
 
 
 def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
@@ -718,7 +718,7 @@ def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
     scalingFactor   (double):
 
     output:
-    (None) Informations is stored in gmsh.model .
+    (None) Information is stored in gmsh.model .
     """
     algo = 6  # default
     gmsh.initialize()
