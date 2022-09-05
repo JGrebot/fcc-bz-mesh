@@ -9,9 +9,8 @@ from numpy import linalg as LA
 model = gmsh.model
 factory = model.occ
 
-a = 5.43e-10
 pi = np.pi
-scalingFactor = 4*pi/a
+scalingFactor = 2.0
 
 DESCRIPTION_SCRIPT = """
 This function builds a mesh of face cubic centered BZ. Though mesh_type you can
@@ -20,6 +19,7 @@ the written mesh. You can visualize the geometry and the mesh though -vm
 and -gm options. Then you can add refienements box with the --refine_L and
 --refine_delta options.
 """
+
 
 def main_BZ_generating_mesh():
     """
@@ -38,14 +38,14 @@ def main_BZ_generating_mesh():
     # Parsing command lines arguments
     ##############################################
     parser = ArgumentParser(
-                description = DESCRIPTION_SCRIPT                )
-    parser.add_argument("-t", 
-                        "--mesh_type", 
-                        dest="mesh_type", 
+        description=DESCRIPTION_SCRIPT)
+    parser.add_argument("-t",
+                        "--mesh_type",
+                        dest="mesh_type",
                         type=int, required=True,
                         help="""Type of mesh to generate, either 1, 2, 8 or 48.
                         For full BZ, half of the bz and so on.""")
-    parser.add_argument("-n", 
+    parser.add_argument("-n",
                         "--mesh_name",
                         dest="filename",
                         default="bz",
@@ -60,30 +60,34 @@ def main_BZ_generating_mesh():
                         required=True,
                         help="""Minimal characteric length of mesh elements (
                         [Ga, X] is of length 1/2).""")
-    parser.add_argument("-lmax", 
-                        "--lengthMax", 
-                        dest="lengthMax", 
-                        type=float, 
-                        default=10e-2, 
+    parser.add_argument("-lmax",
+                        "--lengthMax",
+                        dest="lengthMax",
+                        type=float,
+                        default=10e-2,
                         required=True,
                         help="""Maximal characteric length of mesh elements (
                         [Ga, X] is of length 1/2).""")
-    parser.add_argument("-vm", 
-                        dest="view_mesh", 
-                        action="store_true",  
+    parser.add_argument("-vm",
+                        dest="view_mesh",
+                        action="store_true",
                         default=False,
                         help="""Use this option to open gmsh gui in order to
                         view the mesh.""")
-    parser.add_argument("-gm", 
-                        dest="generate_mesh", 
-                        action="store_false",  
+    parser.add_argument("-gm",
+                        dest="generate_mesh",
+                        action="store_false",
                         default=True,
                         help="""Use this option to NOT generate the mesh. With
                         -vm also activated you'll see only the geometrical
                         model.""")
-    parser.add_argument("--refine_delta", 
-                        dest="refine_delta", 
-                        action='append', 
+    parser.add_argument("-e", "--extension",
+                        dest="extension",
+                        default=".msh",
+                        help="""Extension of the mesh file saved. The extension must be supported by GMSH.""")
+    parser.add_argument("--refine_delta",
+                        dest="refine_delta",
+                        action='append',
                         nargs='+',
                         help="""Refinement parameters for delta valley. Three
                         parameters are required: h_coarse, dL and dH. The
@@ -92,9 +96,9 @@ def main_BZ_generating_mesh():
                         0.0 and 0.125. dH is relative to the segment [X, W],
                         and must be inside ]0.0, \\frac{1}{\srqt{2}}[  ~=
                         ]0.0, 0.7[.""")
-    parser.add_argument("--refine_L", 
-                        dest="refine_L", 
-                        action='append', 
+    parser.add_argument("--refine_L",
+                        dest="refine_L",
+                        action='append',
                         nargs='+',
                         help="""Refinement parameters for L valley. Three 
                         parameters are required: h_coarse, dL and dH. The
@@ -110,6 +114,7 @@ def main_BZ_generating_mesh():
     generate_mesh = args.generate_mesh
     lengthMin = args.lengthMin
     lengthMax = args.lengthMax
+    mesh_extension = args.extension
 
     if args.refine_L is not None:
         h_coarse_L = float(args.refine_L[0][0])
@@ -132,17 +137,17 @@ def main_BZ_generating_mesh():
 
     # filename = "bz" + "_" + mesh_type
 
-    ## Do you wish to see the mesh ?
+    # Do you wish to see the mesh ?
     # view_mesh = True
 
-    ## Do you wish to generate the mesh ?
+    # Do you wish to generate the mesh ?
     # generate_mesh = True
 
-    ## Ga -> X is 1/2 
-    # lengthMin = 3e-2   
+    # Ga -> X is 1/2
+    # lengthMin = 3e-2
     # lengthMax = 10e-2
 
-    ## Local refinement parameters
+    # Local refinement parameters
     # h_coarse_L = 0.01*lengthMin
     # dL_L = 0.125
     # dH_L = 0.10
@@ -162,14 +167,16 @@ def main_BZ_generating_mesh():
     # Applying refinements
     ##############################################
     if args.refine_delta is not None:
-        refine_mesh_delta_valley(dH_delta, dL_delta, mesh_type, BZ_points, h_coarse_delta)
+        refine_mesh_delta_valley(
+            dH_delta, dL_delta, mesh_type, BZ_points, h_coarse_delta)
     if args.refine_L is not None:
         refine_mesh_L_valley(dH_L, dL_L, mesh_type, BZ_points, h_coarse_L)
 
     ##############################################
     # Mesh Writing
     ##############################################
-    writeMeshFile(filename, view=view_mesh, generate=generate_mesh)
+    writeMeshFile(filename, view=view_mesh,
+                  generate=generate_mesh, extension=mesh_extension)
 
 
 def build_BZ_points():
@@ -188,7 +195,7 @@ def build_BZ_points():
 
     # BZ_points in term of a and pi.
     # BZ_points = {
-    #         "Ga": [0, 0, 0], 
+    #         "Ga": [0, 0, 0],
     #         "X": [0, 2*pi/a, 0],
     #         "L": [pi/a, pi/a, pi/a],
     #         "W": [pi/a, 2*pi/a, 0],
@@ -196,12 +203,12 @@ def build_BZ_points():
     #         "K": [3*pi/(2*a), 3*pi/(2*a), 0],
     # }
     BZ_points = {
-            "Ga": np.array([0, 0, 0]), 
-            "X":  np.array([0, 1/2 , 0]),
-            "L":  np.array([1/4, 1/4, 1/4]),
-            "W":  np.array([1/4, 1/2, 0]),
-            "U":  np.array([1/8, 1/2, 1/8]),
-            "K":  np.array([3/8, 3/8, 0]),
+        "Ga": np.array([0, 0, 0]),
+        "X":  np.array([0, 1/2, 0]),
+        "L":  np.array([1/4, 1/4, 1/4]),
+        "W":  np.array([1/4, 1/2, 0]),
+        "U":  np.array([1/8, 1/2, 1/8]),
+        "K":  np.array([3/8, 3/8, 0]),
     }
     return BZ_points
 
@@ -211,10 +218,10 @@ def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
     This function applies the rotation and symetries to 1/48 of the BZ.
     Three type of operations are used:
         0) If 1/48 is chosen, do nothing.
-        1) From 1/48 to 1/8 of the BZ. A symetry along Ga-L-K plane and
+        1) From 1/48 to 1/8 of the BZ. A symmetry along Ga-L-K plane and
            3 rotations along the Gamma-L axis
         2) From 1/8 to 1/2 of the BZ, 4 rotations on the z axis.
-        3) From 1/2 to 1 of the BZ, symetry along the plane of eq. z=0 .
+        3) From 1/2 to 1 of the BZ, symmetry along the plane of eq. z=0 .
 
     input:
     BZ_points       dict: All keys are Ga, L, U, X, W, K. 
@@ -231,21 +238,26 @@ def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
         Ga = BZ_points["Ga"]
         L = BZ_points["L"]
 
-        # Symetry by the Ga - L - K plane (of equation x - y = 0)
-        dimTag_2 = factory.copy(dimTag)   
+        # symmetry by the Ga - L - K plane (of equation x - y = 0)
+        dimTag_2 = factory.copy(dimTag)
         factory.mirror(dimTag_2, 1, -1, 0, 0)
-        dimTag_24 = factory.fuse(dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
+        dimTag_24 = factory.fuse(
+            dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
         # All dim-tag are of format: [(3, tag)]
 
         # Rotation of axis Ga -> L of angle 120 and 240
         dimTag_24_copy = factory.copy(dimTag_24)
-        factory.rotate(dimTag_24_copy, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
+        factory.rotate(
+            dimTag_24_copy, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
         dimTag_24_copy2 = factory.copy(dimTag_24)
-        factory.rotate(dimTag_24_copy2, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
+        factory.rotate(
+            dimTag_24_copy2, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
 
         # Fusing created volumes
-        dimTag_12 = factory.fuse(dimTag_24_copy, dimTag_24, removeObject=True, removeTool=True)[0]
-        dimTag_8 = factory.fuse(dimTag_24_copy2, dimTag_12, removeObject=True, removeTool=True)[0]
+        dimTag_12 = factory.fuse(
+            dimTag_24_copy, dimTag_24, removeObject=True, removeTool=True)[0]
+        dimTag_8 = factory.fuse(
+            dimTag_24_copy2, dimTag_12, removeObject=True, removeTool=True)[0]
 
         if mesh_type == "2" or mesh_type == "1":
 
@@ -258,17 +270,21 @@ def apply_symetry_and_rotation(BZ_points, mesh_type, dimTag):
             factory.rotate(dimTag_8_copy3, 0, 0, 0, 0, 0, 1, 3*pi/2)
 
             # Fusing created volumes
-            dimTag_4_fuse1 = factory.fuse(dimTag_8, dimTag_8_copy1, removeObject=True, removeTool=True)[0]
-            dimTag_4_fuse2 = factory.fuse(dimTag_4_fuse1, dimTag_8_copy2, removeObject=True, removeTool=True)[0]
-            dimTag_2 = factory.fuse(dimTag_4_fuse2, dimTag_8_copy3, removeObject=True, removeTool=True)[0]
+            dimTag_4_fuse1 = factory.fuse(
+                dimTag_8, dimTag_8_copy1, removeObject=True, removeTool=True)[0]
+            dimTag_4_fuse2 = factory.fuse(
+                dimTag_4_fuse1, dimTag_8_copy2, removeObject=True, removeTool=True)[0]
+            dimTag_2 = factory.fuse(
+                dimTag_4_fuse2, dimTag_8_copy3, removeObject=True, removeTool=True)[0]
 
             if mesh_type == "1":
-                # Symetry along the plane of eq. z = 0 
+                # Symmetry along the plane of eq. z = 0
                 dimTag_2_copy = factory.copy(dimTag_2)
                 factory.mirror(dimTag_2_copy, 0, 0, 1, 0)
 
                 # Fusing created volumes
-                dimTag_1 = factory.fuse(dimTag_2_copy, dimTag_2, removeObject=True, removeTool=True)[0]
+                dimTag_1 = factory.fuse(
+                    dimTag_2_copy, dimTag_2, removeObject=True, removeTool=True)[0]
 
     factory.synchronize()
     return None
@@ -278,7 +294,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     """
     This functions add refinement boxes in all the L valley. 
     It works for all mesh_type automatically.
-    
+
     The box along the Ga -> L axis is centered at 0.875*(Ga-L). Its length
     along the (Ga,L) axis is (L-Ga)*dL. dL cannot be higher than 0.125*||L-Ga||. 
     If this is the case we automatically set dL to its maximum.
@@ -286,7 +302,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     The box has size (K-L)*dH in both (L,K) and (L,U) axis.
 
     Said otherwise, the input dL and dH are normalized quantities.
-    
+
     input:
     dH          double: box height (relative) along z and x axis.
     dL          double: box length (relative ) along y axis (X-Ga). Cannot be longer to (1-0.875)*||Ga-X||.
@@ -305,7 +321,7 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     K = BZ_points["K"]
     L = BZ_points["L"]
 
-    # Maximum value for dL (the refinement box is always centered in 
+    # Maximum value for dL (the refinement box is always centered in
     # 0.875(L-Ga).
     if dL > 0.125:
         dL = 0.125
@@ -323,42 +339,47 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
         all_points = []
         p0 = (L-Ga)*(0.875 - dL)
         p1 = np.copy(p0) + (U-L)*dH
-        p2 = (L-Ga)*(0.875 +dL) + (U-L)*dH
+        p2 = (L-Ga)*(0.875 + dL) + (U-L)*dH
         p3 = (L-Ga)*(0.875 + dL)
-        p4 = np.copy(p3) + (K-L)*dH 
+        p4 = np.copy(p3) + (K-L)*dH
         p5 = np.copy(p4) - (L-Ga)*2*dL
         all_points = [p0, p1, p2, p3, p4, p5]
 
         # Adding points. ORDER MATTER !
         tag_point = []
         for p in all_points:
-            tag_point.append(factory.addPoint(p[0],p[1],p[2]))
+            tag_point.append(factory.addPoint(p[0], p[1], p[2]))
 
         # Adding line. ORDER MATTER !
         tag_line = []
 
-        tag_line.append(factory.addLine(tag_point[0],tag_point[1])) # 0
-        tag_line.append(factory.addLine(tag_point[1],tag_point[2])) # 1
-        tag_line.append(factory.addLine(tag_point[2],tag_point[3])) # 2
-        tag_line.append(factory.addLine(tag_point[3],tag_point[0])) # 3 
+        tag_line.append(factory.addLine(tag_point[0], tag_point[1]))  # 0
+        tag_line.append(factory.addLine(tag_point[1], tag_point[2]))  # 1
+        tag_line.append(factory.addLine(tag_point[2], tag_point[3]))  # 2
+        tag_line.append(factory.addLine(tag_point[3], tag_point[0]))  # 3
 
-        tag_line.append(factory.addLine(tag_point[3],tag_point[4]))  # 4
-        tag_line.append(factory.addLine(tag_point[4],tag_point[5]))  # 5
-        tag_line.append(factory.addLine(tag_point[5],tag_point[0]))  # 6
+        tag_line.append(factory.addLine(tag_point[3], tag_point[4]))  # 4
+        tag_line.append(factory.addLine(tag_point[4], tag_point[5]))  # 5
+        tag_line.append(factory.addLine(tag_point[5], tag_point[0]))  # 6
 
-        tag_line.append(factory.addLine(tag_point[1],tag_point[5])) # 7
-        tag_line.append(factory.addLine(tag_point[2],tag_point[4])) # 8
+        tag_line.append(factory.addLine(tag_point[1], tag_point[5]))  # 7
+        tag_line.append(factory.addLine(tag_point[2], tag_point[4]))  # 8
 
         factory.synchronize()
 
         # Adding curve loop.
         tag_curveloop = []
 
-        tag_curveloop.append(factory.addCurveLoop([tag_line[0],tag_line[1],tag_line[2],tag_line[3]]))   
-        tag_curveloop.append(factory.addCurveLoop([tag_line[2],tag_line[4],-tag_line[8]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[0],tag_line[7],-tag_line[6]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[1],tag_line[8],tag_line[5],-tag_line[7]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[3],-tag_line[6],-tag_line[5],-tag_line[4]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[0], tag_line[1], tag_line[2], tag_line[3]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[2], tag_line[4], -tag_line[8]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[0], tag_line[7], -tag_line[6]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[1], tag_line[8], tag_line[5], -tag_line[7]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[3], -tag_line[6], -tag_line[5], -tag_line[4]]))
 
         # Adding Surface
         tag_surface = []
@@ -376,30 +397,32 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
             computeIntersectingVolumes()
             setSize(Tag_refinement, h_coarse)
 
-
         if mesh_type == "8" or mesh_type == "2" or mesh_type == "1":
             Ga = BZ_points["Ga"]
             L = BZ_points["L"]
 
-            # Symetry by the Ga - L - K plane (of equation x - y = 0)
+            # symmetry by the Ga - L - K plane (of equation x - y = 0)
             dimTag_2 = factory.copy(dimTag)
             factory.mirror(dimTag_2, 1, -1, 0, 0)
-            dimTag_24 = factory.fuse(dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
+            dimTag_24 = factory.fuse(
+                dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
 
             # Rotation of axis Ga -> L of angle 120 and 240
             dimTag_3 = factory.copy(dimTag_24)
             dimTag_4 = factory.copy(dimTag_24)
-            factory.rotate(dimTag_3, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
-            factory.rotate(dimTag_4, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
+            factory.rotate(dimTag_3, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
+            factory.rotate(dimTag_4, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
 
-            dimTag_24_tmp = factory.fuse(dimTag_24, dimTag_3, removeObject=True, removeTool=True)[0]
-            dimTag_8 = factory.fuse(dimTag_24_tmp, dimTag_4, removeObject=True, removeTool=True)[0]
-
+            dimTag_24_tmp = factory.fuse(
+                dimTag_24, dimTag_3, removeObject=True, removeTool=True)[0]
+            dimTag_8 = factory.fuse(
+                dimTag_24_tmp, dimTag_4, removeObject=True, removeTool=True)[0]
 
             if mesh_type == "8":
                 computeIntersectingVolumes()
-                setSize( dimTag_8[0][1], h_coarse)
-
+                setSize(dimTag_8[0][1], h_coarse)
 
             if mesh_type == "2" or mesh_type == "1":
                 # dimTag_8 is the only tag we have
@@ -419,15 +442,14 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                 if mesh_type == "2":
                     computeIntersectingVolumes()
-                    setSize( dimTag_8[0][1],   h_coarse)
-                    setSize( dimTag_8_1[0][1], h_coarse)
-                    setSize( dimTag_8_2[0][1], h_coarse)
-                    setSize( dimTag_8_3[0][1], h_coarse)
-
+                    setSize(dimTag_8[0][1],   h_coarse)
+                    setSize(dimTag_8_1[0][1], h_coarse)
+                    setSize(dimTag_8_2[0][1], h_coarse)
+                    setSize(dimTag_8_3[0][1], h_coarse)
 
                 if mesh_type == "1":
                     # Mirror by the plane of equation z = 0
-                    dimTag_2   = factory.copy(dimTag_8)
+                    dimTag_2 = factory.copy(dimTag_8)
                     dimTag_2_1 = factory.copy(dimTag_8_1)
                     dimTag_2_2 = factory.copy(dimTag_8_2)
                     dimTag_2_3 = factory.copy(dimTag_8_3)
@@ -439,23 +461,22 @@ def refine_mesh_L_valley(dH, dL, mesh_type, BZ_points, h_coarse):
 
                     computeIntersectingVolumes()
 
-                    setSize( dimTag_2[0][1], h_coarse)
-                    setSize( dimTag_2_1[0][1], h_coarse)
-                    setSize( dimTag_2_2[0][1], h_coarse)
-                    setSize( dimTag_2_3[0][1], h_coarse)
+                    setSize(dimTag_2[0][1], h_coarse)
+                    setSize(dimTag_2_1[0][1], h_coarse)
+                    setSize(dimTag_2_2[0][1], h_coarse)
+                    setSize(dimTag_2_3[0][1], h_coarse)
 
-                    setSize( dimTag_8[0][1], h_coarse)
-                    setSize( dimTag_8_1[0][1], h_coarse)
-                    setSize( dimTag_8_2[0][1], h_coarse)
-                    setSize( dimTag_8_3[0][1], h_coarse)
-
+                    setSize(dimTag_8[0][1], h_coarse)
+                    setSize(dimTag_8_1[0][1], h_coarse)
+                    setSize(dimTag_8_2[0][1], h_coarse)
+                    setSize(dimTag_8_3[0][1], h_coarse)
 
 
 def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     """
     This functions add refinement boxes in all the delta valley. 
     It works for all mesh_type automatically.
-    
+
     The box along the Ga -> X axis is centered at 0.875 (Ga-X). Its length
     along the X- Ga axis is (X-Ga)*dL. dL cannot be higher than 0.125*||Ga-X||.
     If this is the case, we automatically set dL to its maximum.
@@ -480,7 +501,7 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
     W = BZ_points["W"]
     U = BZ_points["U"]
 
-    # Maximum value for dL (the refinement box is always centered in 
+    # Maximum value for dL (the refinement box is always centered in
     # 0.875(X-Ga).
     if dL > 0.125:
         dL = 0.125
@@ -499,40 +520,46 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
         p1 = np.copy(p0) + (W-X)*dH
         p2 = (X-Ga)*(0.875 + dL) + (W-X)*dH
         p3 = (X-Ga)*(0.875 + dL)
-        p4 = (X-Ga)*(0.875 + dL) + (U-X)/LA.norm(U-X)*LA.norm(W-X)*np.sqrt(dH**2 + dH**2)
+        p4 = (X-Ga)*(0.875 + dL) + (U-X)/LA.norm(U-X) * \
+            LA.norm(W-X)*np.sqrt(dH**2 + dH**2)
         p5 = np.copy(p4) - (X-Ga)*(2*dL)
         all_points = [p0, p1, p2, p3, p4, p5]
 
         # Adding points. ORDER MATTER !
         tag_point = []
         for p in all_points:
-            tag_point.append(factory.addPoint(p[0],p[1],p[2]))
+            tag_point.append(factory.addPoint(p[0], p[1], p[2]))
 
         # Adding line. ORDER MATTER !
         tag_line = []
 
-        tag_line.append(factory.addLine(tag_point[0],tag_point[1])) # 0
-        tag_line.append(factory.addLine(tag_point[1],tag_point[2])) # 1
-        tag_line.append(factory.addLine(tag_point[2],tag_point[3])) # 2
-        tag_line.append(factory.addLine(tag_point[3],tag_point[0])) # 3 
+        tag_line.append(factory.addLine(tag_point[0], tag_point[1]))  # 0
+        tag_line.append(factory.addLine(tag_point[1], tag_point[2]))  # 1
+        tag_line.append(factory.addLine(tag_point[2], tag_point[3]))  # 2
+        tag_line.append(factory.addLine(tag_point[3], tag_point[0]))  # 3
 
-        tag_line.append(factory.addLine(tag_point[3],tag_point[4]))  # 4
-        tag_line.append(factory.addLine(tag_point[4],tag_point[5]))  # 5
-        tag_line.append(factory.addLine(tag_point[5],tag_point[0]))  # 6
+        tag_line.append(factory.addLine(tag_point[3], tag_point[4]))  # 4
+        tag_line.append(factory.addLine(tag_point[4], tag_point[5]))  # 5
+        tag_line.append(factory.addLine(tag_point[5], tag_point[0]))  # 6
 
-        tag_line.append(factory.addLine(tag_point[1],tag_point[5])) # 7
-        tag_line.append(factory.addLine(tag_point[2],tag_point[4])) # 8
+        tag_line.append(factory.addLine(tag_point[1], tag_point[5]))  # 7
+        tag_line.append(factory.addLine(tag_point[2], tag_point[4]))  # 8
 
         factory.synchronize()
 
         # Adding curve loop.
         tag_curveloop = []
 
-        tag_curveloop.append(factory.addCurveLoop([tag_line[0],tag_line[1],tag_line[2],tag_line[3]]))   
-        tag_curveloop.append(factory.addCurveLoop([tag_line[2],tag_line[4],-tag_line[8]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[0],tag_line[7],-tag_line[6]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[1],tag_line[8],tag_line[5],-tag_line[7]]))
-        tag_curveloop.append(factory.addCurveLoop([tag_line[3],-tag_line[6],-tag_line[5],-tag_line[4]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[0], tag_line[1], tag_line[2], tag_line[3]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[2], tag_line[4], -tag_line[8]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[0], tag_line[7], -tag_line[6]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[1], tag_line[8], tag_line[5], -tag_line[7]]))
+        tag_curveloop.append(factory.addCurveLoop(
+            [tag_line[3], -tag_line[6], -tag_line[5], -tag_line[4]]))
 
         # Adding Surface
         tag_surface = []
@@ -546,43 +573,48 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
         Tag_refinement = factory.addVolume([tag_surfaceloop])
         dimTag = [(3, Tag_refinement)]
 
-
         if mesh_type == "48":
             computeIntersectingVolumes()
             setSize(Tag_refinement, h_coarse)
-        
 
         if mesh_type == "8" or mesh_type == "2" or mesh_type == "1":
 
             Ga = BZ_points["Ga"]
             L = BZ_points["L"]
 
-            # Symetry by the Ga - L - K plane (of equation x - y = 0)
-            dimTag_2 = factory.copy(dimTag)   #  [(3, tag)]
+            # symmetry by the Ga - L - K plane (of equation x - y = 0)
+            dimTag_2 = factory.copy(dimTag)  # [(3, tag)]
             factory.mirror(dimTag_2, 1, -1, 0, 0)
-            dimTag_24_1 = factory.fuse(dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
+            dimTag_24_1 = factory.fuse(
+                dimTag_2, dimTag, removeObject=True, removeTool=True)[0]
 
             # Rotation of axis Ga -> L of angle 120 and 240
             dimTag_3 = factory.copy(dimTag)
             dimTag_5 = factory.copy(dimTag)
-            factory.rotate(dimTag_3, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
-            factory.rotate(dimTag_5, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
+            factory.rotate(dimTag_3, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
+            factory.rotate(dimTag_5, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
 
             dimTag_4 = factory.copy(dimTag_2)
             dimTag_6 = factory.copy(dimTag_2)
-            factory.rotate(dimTag_4, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
-            factory.rotate(dimTag_6, Ga[0], Ga[1], Ga[2], L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
+            factory.rotate(dimTag_4, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], -2*pi/3)
+            factory.rotate(dimTag_6, Ga[0], Ga[1], Ga[2],
+                           L[0]-Ga[0], L[1]-Ga[1], L[2]-Ga[2], 2*pi/3)
 
-            dimTag_24_1 = factory.fuse(dimTag, dimTag_6, removeObject=True, removeTool=True)[0]
-            dimTag_24_2 = factory.fuse(dimTag_4, dimTag_5, removeObject=True, removeTool=True)[0]
-            dimTag_24_3 = factory.fuse(dimTag_2, dimTag_3, removeObject=True, removeTool=True)[0]
+            dimTag_24_1 = factory.fuse(
+                dimTag, dimTag_6, removeObject=True, removeTool=True)[0]
+            dimTag_24_2 = factory.fuse(
+                dimTag_4, dimTag_5, removeObject=True, removeTool=True)[0]
+            dimTag_24_3 = factory.fuse(
+                dimTag_2, dimTag_3, removeObject=True, removeTool=True)[0]
 
             if mesh_type == "8":
                 computeIntersectingVolumes()
-                setSize( dimTag_24_1[0][1], h_coarse)
-                setSize( dimTag_24_2[0][1], h_coarse)
-                setSize( dimTag_24_3[0][1], h_coarse)
-
+                setSize(dimTag_24_1[0][1], h_coarse)
+                setSize(dimTag_24_2[0][1], h_coarse)
+                setSize(dimTag_24_3[0][1], h_coarse)
 
             if mesh_type == "2" or mesh_type == "1":
                 # dimTag_24_1 is near the x axis.
@@ -618,23 +650,27 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
                 factory.rotate(dimTag_24_3_2, 0, 0, 0, 0, 0, 1, 2*pi/2)
                 factory.rotate(dimTag_24_3_3, 0, 0, 0, 0, 0, 1, 3*pi/2)
 
-                dimTag_4_xmax = factory.fuse(dimTag_24_1,   dimTag_24_3_1, removeObject=True, removeTool=True)[0]
-                dimTag_4_xmin = factory.fuse(dimTag_24_1_2, dimTag_24_3_3, removeObject=True, removeTool=True)[0]
-                dimTag_4_ymax = factory.fuse(dimTag_24_1_1, dimTag_24_3_2, removeObject=True, removeTool=True)[0]
-                dimTag_4_ymin = factory.fuse(dimTag_24_1_3, dimTag_24_3, removeObject=True, removeTool=True)[0]
-                dimTag_4_zmax = factory.fuse(dimTag_24_2_1 + dimTag_24_2_2 + dimTag_24_2_3, dimTag_24_2, removeObject=True, removeTool=True)[0]
+                dimTag_4_xmax = factory.fuse(
+                    dimTag_24_1,   dimTag_24_3_1, removeObject=True, removeTool=True)[0]
+                dimTag_4_xmin = factory.fuse(
+                    dimTag_24_1_2, dimTag_24_3_3, removeObject=True, removeTool=True)[0]
+                dimTag_4_ymax = factory.fuse(
+                    dimTag_24_1_1, dimTag_24_3_2, removeObject=True, removeTool=True)[0]
+                dimTag_4_ymin = factory.fuse(
+                    dimTag_24_1_3, dimTag_24_3, removeObject=True, removeTool=True)[0]
+                dimTag_4_zmax = factory.fuse(
+                    dimTag_24_2_1 + dimTag_24_2_2 + dimTag_24_2_3, dimTag_24_2, removeObject=True, removeTool=True)[0]
 
                 if mesh_type == "2":
                     computeIntersectingVolumes()
-                    setSize( dimTag_4_xmin[0][1], h_coarse)
-                    setSize( dimTag_4_xmax[0][1], h_coarse)
-                    setSize( dimTag_4_ymax[0][1], h_coarse)
-                    setSize( dimTag_4_ymin[0][1], h_coarse)
-                    setSize( dimTag_4_zmax[0][1], h_coarse)
-
+                    setSize(dimTag_4_xmin[0][1], h_coarse)
+                    setSize(dimTag_4_xmax[0][1], h_coarse)
+                    setSize(dimTag_4_ymax[0][1], h_coarse)
+                    setSize(dimTag_4_ymin[0][1], h_coarse)
+                    setSize(dimTag_4_zmax[0][1], h_coarse)
 
                 if mesh_type == "1":
-                    dimTag_4_zmin   = factory.copy(dimTag_4_zmax)
+                    dimTag_4_zmin = factory.copy(dimTag_4_zmax)
                     dimTag_4_xmax_2 = factory.copy(dimTag_4_xmax)
                     dimTag_4_xmin_2 = factory.copy(dimTag_4_xmin)
                     dimTag_4_ymax_2 = factory.copy(dimTag_4_ymax)
@@ -648,20 +684,24 @@ def refine_mesh_delta_valley(dH, dL, mesh_type, BZ_points, h_coarse):
                     factory.mirror(dimTag_4_ymin_2, 0, 0, 1, 0)
 
                     # Fuse the x/y min/max
-                    dimTag_1_0 = factory.fuse(dimTag_4_ymax, dimTag_4_ymax_2, removeObject=True, removeTool=True)[0]
-                    dimTag_1_1 = factory.fuse(dimTag_4_ymin, dimTag_4_ymin_2, removeObject=True, removeTool=True)[0]
-                    dimTag_1_2 = factory.fuse(dimTag_4_xmax, dimTag_4_xmax_2, removeObject=True, removeTool=True)[0]
-                    dimTag_1_3 = factory.fuse(dimTag_4_xmin, dimTag_4_xmin_2, removeObject=True, removeTool=True)[0]
+                    dimTag_1_0 = factory.fuse(
+                        dimTag_4_ymax, dimTag_4_ymax_2, removeObject=True, removeTool=True)[0]
+                    dimTag_1_1 = factory.fuse(
+                        dimTag_4_ymin, dimTag_4_ymin_2, removeObject=True, removeTool=True)[0]
+                    dimTag_1_2 = factory.fuse(
+                        dimTag_4_xmax, dimTag_4_xmax_2, removeObject=True, removeTool=True)[0]
+                    dimTag_1_3 = factory.fuse(
+                        dimTag_4_xmin, dimTag_4_xmin_2, removeObject=True, removeTool=True)[0]
 
                     computeIntersectingVolumes()
 
-                    setSize( dimTag_1_0[0][1], h_coarse)
-                    setSize( dimTag_1_1[0][1], h_coarse)
-                    setSize( dimTag_1_2[0][1], h_coarse)
-                    setSize( dimTag_1_3[0][1], h_coarse)
+                    setSize(dimTag_1_0[0][1], h_coarse)
+                    setSize(dimTag_1_1[0][1], h_coarse)
+                    setSize(dimTag_1_2[0][1], h_coarse)
+                    setSize(dimTag_1_3[0][1], h_coarse)
 
-                    setSize( dimTag_4_zmax[0][1], h_coarse)
-                    setSize( dimTag_4_zmin[0][1], h_coarse)
+                    setSize(dimTag_4_zmax[0][1], h_coarse)
+                    setSize(dimTag_4_zmin[0][1], h_coarse)
 
 
 def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
@@ -680,7 +720,7 @@ def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
     output:
     (None) Informations is stored in gmsh.model .
     """
-    algo = 6  #default
+    algo = 6  # default
     gmsh.initialize()
     gmsh.option.setNumber("Mesh.ScalingFactor", scalingFactor)
     gmsh.option.setNumber("Mesh.CharacteristicLengthMin", lengthMin)
@@ -688,7 +728,7 @@ def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
     gmsh.option.setNumber("Mesh.SaveElementTagType", 2)
     gmsh.option.setNumber("Mesh.Algorithm", algo)
 
-    
+
 def build_1_over_48_of_the_BZ(BZ_points):
     """
     This function build 1 over 48 of the brillouin zone. Basically the volume
@@ -714,29 +754,34 @@ def build_1_over_48_of_the_BZ(BZ_points):
     tag_point = []
 
     for p in all_points:
-        tag_point.append(factory.addPoint(p[0],p[1],p[2]))
+        tag_point.append(factory.addPoint(p[0], p[1], p[2]))
 
     # Adding line. ORDER MATTER !
     tag_line = []
 
-    tag_line.append(factory.addLine(tag_point[0],tag_point[1])) # Ga -> L
-    tag_line.append(factory.addLine(tag_point[1],tag_point[2])) # L  -> U
-    tag_line.append(factory.addLine(tag_point[2],tag_point[3])) # U  -> X
-    tag_line.append(factory.addLine(tag_point[3],tag_point[0])) # X  -> Ga
-    tag_line.append(factory.addLine(tag_point[3],tag_point[4])) # X  -> W
-    tag_line.append(factory.addLine(tag_point[2],tag_point[4])) # U  -> W
-    tag_line.append(factory.addLine(tag_point[4],tag_point[5])) # W  -> K
-    tag_line.append(factory.addLine(tag_point[5],tag_point[1])) # K  -> L
-    tag_line.append(factory.addLine(tag_point[5],tag_point[0])) # K  -> Ga
+    tag_line.append(factory.addLine(tag_point[0], tag_point[1]))  # Ga -> L
+    tag_line.append(factory.addLine(tag_point[1], tag_point[2]))  # L  -> U
+    tag_line.append(factory.addLine(tag_point[2], tag_point[3]))  # U  -> X
+    tag_line.append(factory.addLine(tag_point[3], tag_point[0]))  # X  -> Ga
+    tag_line.append(factory.addLine(tag_point[3], tag_point[4]))  # X  -> W
+    tag_line.append(factory.addLine(tag_point[2], tag_point[4]))  # U  -> W
+    tag_line.append(factory.addLine(tag_point[4], tag_point[5]))  # W  -> K
+    tag_line.append(factory.addLine(tag_point[5], tag_point[1]))  # K  -> L
+    tag_line.append(factory.addLine(tag_point[5], tag_point[0]))  # K  -> Ga
 
     # Adding curve loop.
     tag_curveloop = []
 
-    tag_curveloop.append(factory.addCurveLoop([tag_line[0],tag_line[1],tag_line[2],tag_line[3]]))   # Ga -> L -> U -> X -> Ga
-    tag_curveloop.append(factory.addCurveLoop([tag_line[0],-tag_line[7],tag_line[8]]))              # Ga -> L -> K -> Ga
-    tag_curveloop.append(factory.addCurveLoop([tag_line[4],-tag_line[5],tag_line[2]]))              # X -> W -> U -> X
-    tag_curveloop.append(factory.addCurveLoop([-tag_line[1],-tag_line[7],-tag_line[6],-tag_line[5]])) # U -> L -> K -> W -> U
-    tag_curveloop.append(factory.addCurveLoop([-tag_line[8],-tag_line[6],-tag_line[4],tag_line[3]]))  # Ga -> K -> W -> X -> Ga
+    tag_curveloop.append(factory.addCurveLoop(
+        [tag_line[0], tag_line[1], tag_line[2], tag_line[3]]))   # Ga -> L -> U -> X -> Ga
+    tag_curveloop.append(factory.addCurveLoop(
+        [tag_line[0], -tag_line[7], tag_line[8]]))              # Ga -> L -> K -> Ga
+    tag_curveloop.append(factory.addCurveLoop(
+        [tag_line[4], -tag_line[5], tag_line[2]]))              # X -> W -> U -> X
+    tag_curveloop.append(factory.addCurveLoop(
+        [-tag_line[1], -tag_line[7], -tag_line[6], -tag_line[5]]))  # U -> L -> K -> W -> U
+    tag_curveloop.append(factory.addCurveLoop(
+        [-tag_line[8], -tag_line[6], -tag_line[4], tag_line[3]]))  # Ga -> K -> W -> X -> Ga
 
     # Adding Surface
     tag_surface = []
@@ -752,7 +797,7 @@ def build_1_over_48_of_the_BZ(BZ_points):
     return [(3, Tag)]
 
 
-def writeMeshFile(filename, view = False, generate = True, dim = 3, extension=".mesh"):
+def writeMeshFile(filename, view=False, generate=True, dim=3, extension=".msh"):
     """
     Generic function to:
     Either view the geometric model in gmsh gui. (view=True, generate=False)
@@ -802,22 +847,18 @@ def setSize(Tag_refinement, size):
     output:     
     None (information is stored in gmsh.model)
     """
-    xmin, ymin, zmin, xmax, ymax, zmax = factory.getBoundingBox(3, Tag_refinement)
-    
-    box = np.array(model.getEntitiesInBoundingBox(xmin,\
-                                                 ymin,\
-                                                 zmin,\
-                                                 xmax,\
-                                                 ymax,\
-                                                 zmax,\
-                                                 dim = 0))
+    xmin, ymin, zmin, xmax, ymax, zmax = factory.getBoundingBox(
+        3, Tag_refinement)
+
+    box = np.array(model.getEntitiesInBoundingBox(xmin,
+                                                  ymin,
+                                                  zmin,
+                                                  xmax,
+                                                  ymax,
+                                                  zmax,
+                                                  dim=0))
     model.mesh.setSize(box, size)
 
 
 if __name__ == "__main__":
     main_BZ_generating_mesh()
-
-    
-    
-    
-
