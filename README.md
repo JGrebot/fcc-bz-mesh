@@ -81,3 +81,15 @@ python3 BZ.py -t 48 -n test-mesh-bz -lmin 3e-2 -lmax 10e-2 -vm --refine_delta 0.
 
 You can now use [this repo](https://github.com/RemiHelleboid/BzMeshBandsDos) from my friend Rémi Helleboid in order to actually compute the band structure on  the created mesh. And visualize the output with Paraview to get nice animations.
 
+## Other tools
+
+With the script __pathBZ.py__  you can easily create a list of points following a path of high-symmetry points in the BZ.
+For example, if you wants 1000 points along the path $L \Gamma XWKULWXK \Gamma$, the command is:
+`python pathBZ.py -p LGXWKULWXKG -nb 1000 -o my_path.csv`
+The result is stores in the file _my_path.dat_ with a standard format:
+0.250000 0.250000 0.250000  
+0.249732 0.249732 0.249732  
+0.249464 0.249464 0.249464  
+...
+
+---
