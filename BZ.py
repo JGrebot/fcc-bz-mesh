@@ -720,13 +720,13 @@ def initialize_gmsh_model(lengthMin, lengthMax, scalingFactor):
     output:
     (None) Information is stored in gmsh.model .
     """
-    algo = 6  # default
+    algo = 7  # default
     gmsh.initialize()
     gmsh.option.setNumber("Mesh.ScalingFactor", scalingFactor)
     gmsh.option.setNumber("Mesh.CharacteristicLengthMin", lengthMin)
     gmsh.option.setNumber("Mesh.CharacteristicLengthMax", lengthMax)
     gmsh.option.setNumber("Mesh.SaveElementTagType", 2)
-    gmsh.option.setNumber("Mesh.Algorithm", algo)
+    gmsh.option.setNumber("Mesh.Algorithm3D", algo)
 
 
 def build_1_over_48_of_the_BZ(BZ_points):
